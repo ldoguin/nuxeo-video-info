@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-Vendor: Nuxeo
+Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: .
+Bundle-Version: 5.7-I20130513_0116
+Bundle-Name: nuxeo-video-info
+Bundle-ManifestVersion: 2
+Nuxeo-Component: OSGI-INF/actions-contrib.xml,OSGI-INF/core-types-cont
+ rib.xml, OSGI-INF/theme-contrib.xml
+Bundle-SymbolicName: nuxeo-video-info
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+

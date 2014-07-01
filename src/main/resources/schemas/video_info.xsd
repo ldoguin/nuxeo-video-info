@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:nxs="http://www.nuxeo.org/ecm/schemas/video"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://www.nuxeo.org/ecm/schemas/video">
+
+  <xs:include schemaLocation="core-types.xsd" />
+
+
+  <xs:element name="text" type="nxs:textitems" />
+  <xs:element name="subtitles" type="nxs:subtitles" />
+  <xs:element name="webvttFile" type="nxs:content" />
+
+
+  <xs:complexType name="textitems">
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" minOccurs="0"
+       name="textitem" type="nxs:textitem"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="textitem">
+    <xs:sequence>
+      <xs:element name="timecode" type="xs:float" />
+      <xs:element name="text" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="subtitles">
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" minOccurs="0"
+       name="subtitle" type="nxs:subtitle"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="subtitle">
+    <xs:sequence>
+      <xs:element name="start" type="xs:float" />
+      <xs:element name="end" type="xs:float" />
+      <xs:element name="text" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

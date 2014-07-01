@@ -1,0 +1,207 @@
+<div xmlns:h="http://java.sun.com/jsf/html"
+  xmlns:f="http://java.sun.com/jsf/core"
+  xmlns:ui="http://java.sun.com/jsf/facelets"
+  xmlns:c="http://java.sun.com/jstl/core"
+  xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+  xmlns:nxd="http://nuxeo.org/nxweb/document"
+  xmlns:nxdir="http://nuxeo.org/nxdirectory"
+  xmlns:a4j="https://ajax4jsf.dev.java.net/ajax"
+  xmlns:nxu="http://nuxeo.org/nxweb/util">
+
+  <c:if test="#{currentDocument.hasFacet('Video')}">
+          <nxu:set var="staticPreview" value="#{videoActions.getURLForStaticPreview(currentDocument)}">
+          <nxu:set var="mp4URL" value="#{videoActions.getTranscodedVideoURL(currentDocument, 'MP4 480p')}">
+          <nxu:set var="webmURL" value="#{videoActions.getTranscodedVideoURL(currentDocument, 'WebM 480p')}">
+          <nxu:set var="subtitleURL" value="#{videoInfoActions.getSubtitlesURL(currentDocument)}">
+          <nxu:set var="safariHTML5" value="#{videoActions.safariHTML5}">
+          <nxu:set var="chromeHTML5" value="#{videoActions.chromeHTML5}">
+          <nxu:set var="firefoxHTML5" value="#{videoActions.firefoxHTML5}">
+          <nxu:set var="HTML5Available" value="#{safariHTML5 or chromeHTML5 or firefoxHTML5}">
+  <a4j:region>
+    <a4j:form id="videoInfoForm"> 
+      <h:panelGrid id="grid" columns="2">
+        <h:panelGroup layout="block">
+          <c:set var="width" value="#{nxu:test(!empty widgetProperty_width, widgetProperty_width, 550)}" />
+          <c:set var="height" value="#{nxu:test(!empty widgetProperty_height, widgetProperty_height, 310)}" />
+
+
+          <c:if test="#{empty mp4URL}">
+            <nxu:set var="conversionStatus"
+              value="#{videoActions.getVideoConversionStatus(currentDocument, 'MP4 480p')}">
+              <c:if test="#{not empty conversionStatus}">
+                <p class="tips">
+                  #{videoActions.getStatusMessageFor(conversionStatus)}
+                </p>
+              </c:if>
+            </nxu:set>
+          </c:if>
+          <c:choose>
+            <c:when test="#{(not empty mp4URL and safariHTML5) or (not empty webmURL and (chromeHTML5 or firefoxHTML5))}">
+              <div class="video-js-box">
+                <script>
+                  vjs.options.flash.swf = "#{baseURL}swf/video-js.swf";
+                </script>
+                <video id="example_video_1" width="#{width}" height="#{height}" class="video-js vjs-default-skin" controls="controls" preload="auto"
+                  poster="#{staticPreview}">
+                  <c:if test="#{not empty mp4URL and safariHTML5}">
+                    <source src="#{mp4URL}" type='video/mp4' />
+                  </c:if>
+                  <c:if test="#{not empty webmURL and (firefoxHTML5 or chromeHTML5)}">
+                    <source src="#{webmURL}" type='video/webm' />
+                  </c:if>
+                  <c:if test="#{not empty subtitleURL}">
+                    <track kind="captions" src="#{subtitleURL}" srclang="en" label="English" />
+                  </c:if>
+                </video>
+              </div>
+            </c:when>
+          </c:choose>
+
+          <h3>
+            <a4j:commandButton styleClass="button" style="margin :5px"
+              value="+ Chapter" reRender="theTextItem" action="#{videoInfoActions.addTextItem(currentDocument)}" >
+              <a4j:actionparam name="timecode" noEscape="true" value="vjs('example_video_1').currentTime()" assignTo="#{videoInfoActions.timecode}" />
+            </a4j:commandButton>
+            <a4j:commandButton styleClass="button" style="margin :5px"
+              value="+ Subtitle"
+              reRender="theSubTitleItem" action="#{videoInfoActions.addSubTitleItem(currentDocument)}" >
+              <a4j:actionparam name="start" noEscape="true" value="jQuery('#start_time').val()" assignTo="#{videoInfoActions.start}" />
+              <a4j:actionparam name="end" noEscape="true" value="jQuery('#end_time').val()" assignTo="#{videoInfoActions.end}" />
+            </a4j:commandButton>
+            <input type="checkbox" id="lock_slider" value="1" /> Lock Slider<br/>
+         </h3>
+         <h:inputTextarea id="textItemInput" cols="80" styleClass="dataInputText" value="#{videoInfoActions.textItem}" />
+         <div style="display:none">
+           <input type="text" id="start_time" />
+           <input type="text" id="end_time" />
+         </div>
+      </h:panelGroup>
+
+
+
+
+      <h:panelGroup layout="block" style="padding:10px;float:right;overflow-y:scroll;overflow-x:hidden;height:500px;width:400px">
+        <div class="tabsBar">
+          <ul>
+            <li id="chapterBox"><a onclick="toggleChapBox()">Chapter</a></li>
+            <li id="subBox"><a onclick="toggleSubBox();">Subs</a></li>
+          </ul>
+        </div>
+        <a4j:outputPanel id="theTextItem">
+          <nxu:inputList value="#{videoInfoActions.textItems}" model="item">
+            <div>
+              <a4j:commandButton styleClass="button" style="float:right;"
+                value="#{messages['X']}"
+                reRender="theTextItem" action="#{videoInfoActions.removeTextItem(currentDocument, item.rowData)}" />
+              <span class="videoInfoTextItem" timecode="#{item.rowData.tc}">
+                <h:outputText value="timecode: #{item.rowData.timecode}" /> <br />
+                <h:outputText value="#{item.rowData.text}" />
+              </span>
+            </div>
+          </nxu:inputList>
+  <script type="text/javascript">
+    jQuery(document).ready(function() {
+      addLinkToInfoTextItem();
+    });
+  </script>
+        </a4j:outputPanel>
+
+        <a4j:outputPanel id="theSubTitleItem" >
+          <c:if test="#{not empty subtitleURL}">
+            <h:outputLink value="#{subtitleURL}">
+              Download Subs<h:graphicImage url="/icons/download.png" />
+            </h:outputLink>
+          </c:if>
+
+          <nxu:inputList value="#{videoInfoActions.subtitleItems}" model="item">
+            <div>
+              <a4j:commandButton styleClass="button" style="float:right;margin: -5px;"
+                value="#{messages['X']}"
+                reRender="theSubTitleItem" action="#{videoInfoActions.removeSubTitleItem(currentDocument, item.rowData)}" />
+              <span class="videoInfoTextItem" timecode="#{item.rowData.tcStart}">
+                <h:outputText value="#{item.rowData.position} " /><br />
+                <h:outputText value="#{item.rowData.start} --> #{item.rowData.end}" /><br />
+                <h:outputText value="#{item.rowData.text}" />
+              </span>
+            </div>
+          </nxu:inputList>
+  <script type="text/javascript">
+    jQuery(document).ready(function() {
+      addLinkToInfoTextItem();
+    });
+  </script>
+        </a4j:outputPanel>
+        </h:panelGroup>
+      </h:panelGrid>
+
+
+
+    </a4j:form>
+  </a4j:region>
+
+  <script type="text/javascript">
+
+      function toggleSubBox(){
+        jQuery('#videoInfoForm\\:theTextItem').hide();
+        jQuery('#videoInfoForm\\:theSubTitleItem').show();
+        jQuery('#subBox').addClass('selected');
+        jQuery('#chapterBox').removeClass('selected');
+        return false;
+      }
+
+      function toggleChapBox(){
+        jQuery('#videoInfoForm\\:theTextItem').show();
+        jQuery('#videoInfoForm\\:theSubTitleItem').hide();
+        jQuery('#chapterBox').addClass('selected');
+        jQuery('#subBox').removeClass('selected');
+        return false;
+      }
+
+      function addLinkToInfoTextItem(){
+        var video = vjs('example_video_1');
+        jQuery("#videoInfoForm\\:textItemInput").val("");
+        jQuery(".videoInfoTextItem").css('cursor', 'pointer');
+        jQuery(".videoInfoTextItem").click(function() {
+          video.currentTime(parseFloat(jQuery(this).attr('timecode')));
+          video.play();
+          return false;
+        });
+      }
+
+    jQuery(document).ready(function() {
+      toggleChapBox();
+      var video = vjs('example_video_1');
+      video.rangeslider({hidden:false});
+      video.hideControlTime();
+
+      var $start_time = jQuery('#start_time');
+      var $end_time = jQuery('#end_time');
+      var $lock_slider = jQuery('#lock_slider');
+
+      // change lock status on slider
+      $lock_slider.change(function(event) {
+        var locked = jQuery(this).attr('checked') ? true : false;
+        locked?video.lockSlider():video.unlockSlider();
+      });
+
+      video.on("sliderchange",function() {
+        var values = video.getValueSlider();
+        $start_time.val(videojs.round(values.start,2));
+        $end_time.val(videojs.round(values.end,2));
+      });
+
+    });
+</script>
+
+
+          </nxu:set>
+          </nxu:set>
+          </nxu:set>
+          </nxu:set>
+          </nxu:set>
+          </nxu:set>
+          </nxu:set>
+          </nxu:set>
+  </c:if>
+
+</div>

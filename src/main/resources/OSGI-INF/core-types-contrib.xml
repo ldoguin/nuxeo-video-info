@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.video.info.coretype">
+
+  <extension target="org.nuxeo.ecm.core.schema.TypeService" point="schema">
+    <schema name="videoInfo" src="schemas/video_info.xsd" prefix="vidi" />
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.schema.TypeService" point="doctype">
+    <facet name="VideoInfo">
+      <schema name="videoInfo" />
+    </facet>
+  </extension>
+
+</component>
